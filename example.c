@@ -11,6 +11,14 @@ int main() {
     for (int i=0; i < query.numOfResults; i++){
         printf("%s\n",query.results[i]);
     }
-
+    printf("<<<<\n");
+    reactantQueryResults query2 = queryByNoReactant_c(1);
+    for (int i=0; i<query2.numOfResults; i++){
+        printf("%s\n", query2.keys[i]);
+        for(int j=0;j<query2.numOfAssociatedReactions[i]; j++){
+            printf("-----\n");
+            printf("\t%s: %s\n",query2.associatedReactions[i].reactionNames[j],query2.associatedReactions[i].rates[j]);
+        }
+    }
 
 }
