@@ -43,7 +43,8 @@ extern "C" {
     reactantQueryResults queryByNoReactant_c(const int);
 
     //returns all possible complexes in the current system
-    queryResults querySystemStatus_c(const char*);
+    queryResults querySystemStatus_c(const char* option);
+
 
 #ifdef __cplusplus
 }

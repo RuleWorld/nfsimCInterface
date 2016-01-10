@@ -1,6 +1,6 @@
 #include <cstdlib>
 
-#include "nfsim_connector.h"
+#include "nfsim_c.h"
 #include <NFapi.hh>
 
 #ifdef __cplusplus

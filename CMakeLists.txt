@@ -31,8 +31,10 @@ set(SUB_DIRS
 project(nfsim_c)
 
 set(SOURCE_FILES
-    nfsim_connector.cpp
-    nfsim_connector.h)
+    nfsim_c.cpp
+    nfsim_c.h)
+
+
 
 add_definitions("-Wno-deprecated-declarations")
 add_definitions(-std=c++11)
