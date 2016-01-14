@@ -11,15 +11,22 @@ extern "C" {
 
 
 int setupNFSim_c(const char* filename, int verbose) {
-    return NFapi::setupNFSim(filename, verbose);
+    //nfapi returns bool
+    if(NFapi::setupNFSim(filename, verbose))
+        return 0;
+    return -1;
 }
 
 int resetSystem_c(){
-    return NFapi::resetSystem();
+    if(NFapi::resetSystem())
+        return 0;
+    return -1;
 }
 
 int initSystemXML_c(const char * initXML){
-    return NFapi::initSystemXML(std::string(initXML));
+    if(NFapi::initSystemXML(std::string(initXML)))
+        return 0;
+    return -1;
 }
 
 
@@ -28,13 +35,13 @@ int initSystemNauty_c(const char** nautyString, const int* seedNumber, int numbe
     for(int i=0; i< numberOfElements; i++){
         initMap[std::string(nautyString[i])] = seedNumber[i];
     }
-
-    NFapi::initSystemNauty(initMap);
-
+    if(NFapi::initSystemNauty(initMap))
+        return 0;
+    return -1;
 }
 
 queryResults querySystemStatus_c(const char* option){
-    std::set<string> tmpResults;
+    std::vector<string> tmpResults;
     NFapi::querySystemStatus(std::string(option), tmpResults);
     queryResults query;
     query.results = (char**) malloc(tmpResults.size() * sizeof(char *));
@@ -51,9 +58,10 @@ queryResults querySystemStatus_c(const char* option){
     return query;
 }
 
-reactantQueryResults queryByNoReactant_c(const int numReactants){
-    std::map<std::string, vector<map<string,string>>> queryResults;
-    NFapi::queryByNoReactant(queryResults, numReactants);
+
+
+reactantQueryResults map2ReactantQueryResults(const std::map<std::string, vector<map<string,string>>> &queryResults){
+
     reactantQueryResults finalResults;
     finalResults.numOfResults = queryResults.size();
     finalResults.keys = (char**) malloc(queryResults.size() * sizeof(char *));
@@ -65,16 +73,9 @@ reactantQueryResults queryByNoReactant_c(const int numReactants){
     for(auto it: queryResults){
         finalResults.keys[idx] = (char *) malloc(it.first.size() + 1);
         memcpy(finalResults.keys[idx], it.first.c_str(), it.first.size() + 1);
-
         finalResults.numOfAssociatedReactions[idx] = it.second.size();
-
-
-
-
         finalResults.associatedReactions[idx].reactionNames = (char**) malloc(it.second.size() * sizeof(char*));
-        finalResults.associatedReactions[idx].rates = (char**) malloc(it.second.size() * sizeof(char*));
-
-
+        finalResults.associatedReactions[idx].rates = (double*) malloc(it.second.size() * sizeof(double));
         idx2 = 0;
 
 
@@ -82,12 +83,20 @@ reactantQueryResults queryByNoReactant_c(const int numReactants){
             finalResults.associatedReactions[idx].reactionNames[idx2] = (char*) malloc(rxn["name"].size() + 1);
             memcpy(finalResults.associatedReactions[idx].reactionNames[idx2], rxn["name"].c_str(), rxn["name"].size() + 1);
 
-            finalResults.associatedReactions[idx].rates[idx2] = (char*) malloc(rxn["rate"].size() + 1);
-            memcpy(finalResults.associatedReactions[idx].rates[idx2], rxn["rate"].c_str(), rxn["rate"].size() + 1);
+            finalResults.associatedReactions[idx].rates[idx2] = std::stod(rxn["rate"]);
             ++idx2;
         }
         ++idx;
     }
+    return finalResults;    
+}
+
+
+reactantQueryResults queryByNumReactant_c(const int numReactants){
+    std::map<std::string, vector<map<string,string>>> queryResults;
+    NFapi::queryByNumReactant(queryResults, numReactants);
+
+    reactantQueryResults finalResults = map2ReactantQueryResults(queryResults);
 
     //cleanup
     for(auto it: queryResults){
@@ -98,6 +107,42 @@ reactantQueryResults queryByNoReactant_c(const int numReactants){
     return finalResults;
 }
 
+
+reactantQueryResults initAndQueryByNumReactant_c(const char** nautyString, const int* seedNumber, const int numberOfElements, 
+                                                 const int numberOfReactants){
+    map<std::string, int> initMap;
+    for(int i=0; i< numberOfElements; i++){
+        initMap[std::string(nautyString[i])] = seedNumber[i];
+    }
+    std::map<std::string, vector<map<string,string>>> queryResults;
+    NFapi::initAndQueryByNumReactant(initMap, queryResults, numberOfReactants);
+
+    reactantQueryResults finalResults = map2ReactantQueryResults(queryResults);
+    //cleanup
+    for(auto it: queryResults){
+        it.second.clear();
+    }
+
+    queryResults.clear();
+    initMap.clear();
+
+    return finalResults;
+
+}
+
+int stepSimulation_c(){
+    if(NFapi::stepSimulation())
+        return 0;
+    return 1;
+
+}
+
+int stepSimulationRxn_c(const char* rxn){
+    if(NFapi::stepSimulation(string(rxn))){
+        return 0;
+    }
+    return 1;
+}
 
 #ifdef __cplusplus
 }

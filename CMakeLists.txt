@@ -40,7 +40,7 @@ add_definitions("-Wno-deprecated-declarations")
 add_definitions(-std=c++11)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${SUB_DIRS})
-link_directories(lib)
+link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} NFsim)

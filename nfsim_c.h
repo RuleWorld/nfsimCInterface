@@ -14,7 +14,7 @@ extern "C" {
 
     struct reactionResult{
         char** reactionNames;
-        char** rates;
+        double* rates;
     };
 
     typedef struct queryResults queryResults;
@@ -40,11 +40,18 @@ extern "C" {
     //seeds the nfsim system with an array of hnauty labels- int pairs
     int initSystemNauty_c(const char**, const int*, int);
     //returns those molecules in the system that are participants in a reaction with <param> reactants that can be fired
-    reactantQueryResults queryByNoReactant_c(const int);
+    reactantQueryResults queryByNumReactant_c(const int);
+
+    //convenience function that calls reset, initNauty and queryByNumReactant
+    reactantQueryResults initAndQueryByNumReactant_c(const char**, const int*, const int, const int);
 
     //returns all possible complexes in the current system
     queryResults querySystemStatus_c(const char* option);
 
+    //perform one simulation step
+    int stepSimulation_c();
+    //performs exactly one simulation step by firying reaction rxn
+    int stepSimulationRxn_c(const char* rxnx);
 
 #ifdef __cplusplus
 }
