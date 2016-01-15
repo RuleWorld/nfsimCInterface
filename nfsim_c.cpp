@@ -43,6 +43,7 @@ int initSystemNauty_c(const char** nautyString, const int* seedNumber, int numbe
 queryResults querySystemStatus_c(const char* option){
     std::vector<string> tmpResults;
     NFapi::querySystemStatus(std::string(option), tmpResults);
+
     queryResults query;
     query.results = (char**) malloc(tmpResults.size() * sizeof(char *));
     query.numOfResults = tmpResults.size();
@@ -108,15 +109,53 @@ reactantQueryResults queryByNumReactant_c(const int numReactants){
 }
 
 
-reactantQueryResults initAndQueryByNumReactant_c(const char** nautyString, const int* seedNumber, const int numberOfElements, 
-                                                 const int numberOfReactants){
-    map<std::string, int> initMap;
-    for(int i=0; i< numberOfElements; i++){
-        initMap[std::string(nautyString[i])] = seedNumber[i];
+queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
+    std::vector<string> tmpResults;
+    NFapi::numReactantQueryIndex options;
+    for(int i=0;i < options_c.numOfInitElements; i++)
+    {
+        options.initMap[options_c.initKeys[i]] = options_c.initValues[i];
+    }
+    for(int i=0; i< options_c.numOfOptions; i++)
+    {
+        options.options[options_c.optionKeys[i]] = options_c.optionValues[i];
+    }
+
+    NFapi::initAndQuerySystemStatus(options, tmpResults);
+
+    queryResults query;
+    query.results = (char**) malloc(tmpResults.size() * sizeof(char *));
+    query.numOfResults = tmpResults.size();
+    int index = 0;
+    for(string it: tmpResults){
+        query.results[index] = (char *)malloc(it.size()+1);
+        memcpy(query.results[index], it.c_str(), it.size() + 1);
+        index++;
+    }
+
+    tmpResults.clear();
+    options.initMap.clear();
+    options.options.clear();
+
+    return query;
+
+}
+
+reactantQueryResults initAndQueryByNumReactant_c(const queryOptions options_c){
+    NFapi::numReactantQueryIndex options;
+    for(int i=0;i < options_c.numOfInitElements; i++)
+    {
+        options.initMap[options_c.initKeys[i]] = options_c.initValues[i];
+    }
+    for(int i=0; i< options_c.numOfOptions; i++)
+    {
+        options.options[options_c.optionKeys[i]] = options_c.optionValues[i];
     }
     std::map<std::string, vector<map<string,string>>> queryResults;
-    NFapi::initAndQueryByNumReactant(initMap, queryResults, numberOfReactants);
 
+    NFapi::initAndQueryByNumReactant(options, queryResults);
+
+    //translate results to a C friendly form
     reactantQueryResults finalResults = map2ReactantQueryResults(queryResults);
     //cleanup
     for(auto it: queryResults){
@@ -124,11 +163,12 @@ reactantQueryResults initAndQueryByNumReactant_c(const char** nautyString, const
     }
 
     queryResults.clear();
-    initMap.clear();
+    options.initMap.clear();
+    options.options.clear();
 
     return finalResults;
-
 }
+
 
 int stepSimulation_c(){
     if(NFapi::stepSimulation())

@@ -27,6 +27,18 @@ extern "C" {
         reactionResult* associatedReactions;
     };
 
+    struct queryOptions{
+        const char** initKeys;
+        const int* initValues;
+
+        const char** optionKeys;
+        char** optionValues;
+
+        int numOfInitElements;
+        int numOfOptions;
+    };
+
+    typedef struct queryOptions queryOptions;
     typedef struct reactantQueryResults reactantQueryResults;
 
 
@@ -43,7 +55,11 @@ extern "C" {
     reactantQueryResults queryByNumReactant_c(const int);
 
     //convenience function that calls reset, initNauty and queryByNumReactant
-    reactantQueryResults initAndQueryByNumReactant_c(const char**, const int*, const int, const int);
+    reactantQueryResults initAndQueryByNumReactant_c(const queryOptions);
+
+    //convenience function that calls reset, init, step and query
+    queryResults initAndQuerySystemStatus_c(const queryOptions);
+
 
     //returns all possible complexes in the current system
     queryResults querySystemStatus_c(const char* option);
@@ -51,7 +67,7 @@ extern "C" {
     //perform one simulation step
     int stepSimulation_c();
     //performs exactly one simulation step by firying reaction rxn
-    int stepSimulationRxn_c(const char* rxnx);
+    int stepSimulationRxn_c(const char* rxn);
 
 #ifdef __cplusplus
 }
