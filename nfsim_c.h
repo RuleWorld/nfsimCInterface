@@ -1,6 +1,8 @@
 #ifndef NFSIM_CONNECTOR_H 
 #define NFSIM_CONNECTOR_H 
 
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,8 +19,15 @@ extern "C" {
         double* rates;
     };
 
+    struct observableResults{
+        char** observableNames;
+        double* observableValues;
+        int numResults;
+    };
+
     typedef struct queryResults queryResults;
     typedef struct reactionResult reactionResult;
+    typedef struct observableResults observableResults;
 
     struct reactantQueryResults{
         int numOfResults;
@@ -51,6 +60,14 @@ extern "C" {
     int initSystemXML_c(const char*);
     //seeds the nfsim system with an array of hnauty labels- int pairs
     int initSystemNauty_c(const char**, const int*, int);
+
+
+    //update a seeding table that keeps track of molecules we will use to initialize the system
+    int constructNauty_c(const char*, const int);
+
+    //init a system from the incremental list
+    int initFromConstruct_c();
+
     //returns those molecules in the system that are participants in a reaction with <param> reactants that can be fired
     reactantQueryResults queryByNumReactant_c(const int);
 
@@ -63,6 +80,8 @@ extern "C" {
 
     //returns all possible complexes in the current system
     queryResults querySystemStatus_c(const char* option);
+
+    observableResults queryObservables_c();
 
     //perform one simulation step
     int stepSimulation_c();

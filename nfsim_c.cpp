@@ -3,6 +3,8 @@
 #include "nfsim_c.h"
 #include <NFapi.hh>
 
+map<string,int> preInitMap;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,6 +41,26 @@ int initSystemNauty_c(const char** nautyString, const int* seedNumber, int numbe
         return 0;
     return -1;
 }
+
+int initFromConstruct_c(){
+    if(NFapi::initSystemNauty(preInitMap))
+        return 0;
+    return -1;
+        
+}
+
+
+int constructNauty_c(const char* nautyString, const int seedNumber){
+    if(preInitMap.find(nautyString) == preInitMap.end()){
+        preInitMap[nautyString] = 0;
+    }
+
+    preInitMap[nautyString] = preInitMap[nautyString] + seedNumber;
+    preInitMap[nautyString] = max(preInitMap[nautyString], 0);
+
+    return 0;
+}
+
 
 queryResults querySystemStatus_c(const char* option){
     std::vector<string> tmpResults;
@@ -85,6 +107,9 @@ reactantQueryResults map2ReactantQueryResults(const std::map<std::string, vector
             memcpy(finalResults.associatedReactions[idx].reactionNames[idx2], rxn["name"].c_str(), rxn["name"].size() + 1);
 
             finalResults.associatedReactions[idx].rates[idx2] = std::stod(rxn["rate"]);
+
+            //finalResults.associatedReactions[idx].numReactants[idx2] = std::stoul(rxn["numReactants"],0,10);
+            //finalResults.associatedReactions[idx].numProducts[idx2] = std::stoul(rxn["numProducts"],0,10);
             ++idx2;
         }
         ++idx;
@@ -108,17 +133,39 @@ reactantQueryResults queryByNumReactant_c(const int numReactants){
     return finalResults;
 }
 
+observableResults queryObservables_c(){
+    std::map<std::string, double> observables;
+    observableResults results;
+    results.observableNames = (char**) malloc(observables.size() * sizeof(char *));
+    results.observableValues = (double*) malloc(observables.size() * sizeof(double));
+
+    NFapi::queryObservables(observables);
+    int idx = 0;
+    for (auto it: observables){
+        results.observableNames[idx] = (char *) malloc(it.first.size() + 1);
+        memcpy(results.observableNames[idx], it.first.c_str(), it.first.size() + 1);
+        results.observableValues[idx] = it.second;
+        ++idx;
+    }
+
+    results.numResults = observables.size();
+    return results;
+}
+
 
 queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
     std::vector<string> tmpResults;
     NFapi::numReactantQueryIndex options;
+
     for(int i=0;i < options_c.numOfInitElements; i++)
     {
         options.initMap[options_c.initKeys[i]] = options_c.initValues[i];
     }
+
     for(int i=0; i< options_c.numOfOptions; i++)
     {
-        options.options[options_c.optionKeys[i]] = options_c.optionValues[i];
+        options.options[options_c.optionKeys[i]] = std::string(options_c.optionValues[i]);
+
     }
 
     NFapi::initAndQuerySystemStatus(options, tmpResults);
@@ -136,10 +183,10 @@ queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
     tmpResults.clear();
     options.initMap.clear();
     options.options.clear();
-
     return query;
 
 }
+
 
 reactantQueryResults initAndQueryByNumReactant_c(const queryOptions options_c){
     NFapi::numReactantQueryIndex options;
@@ -147,12 +194,13 @@ reactantQueryResults initAndQueryByNumReactant_c(const queryOptions options_c){
     {
         options.initMap[options_c.initKeys[i]] = options_c.initValues[i];
     }
+
     for(int i=0; i< options_c.numOfOptions; i++)
     {
         options.options[options_c.optionKeys[i]] = options_c.optionValues[i];
     }
-    std::map<std::string, vector<map<string,string>>> queryResults;
 
+    std::map<std::string, vector<map<string,string>>> queryResults;
     NFapi::initAndQueryByNumReactant(options, queryResults);
 
     //translate results to a C friendly form
