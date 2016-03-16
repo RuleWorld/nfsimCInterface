@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-
+    
     //helper structures for the querying methods
     struct queryResults{
         int numOfResults;
@@ -25,9 +25,17 @@ extern "C" {
         int numResults;
     };
 
+
     typedef struct queryResults queryResults;
     typedef struct reactionResult reactionResult;
     typedef struct observableResults observableResults;
+
+    struct observableSetResults{
+        observableResults* dataPoints;
+        double* timePoints;
+        int numTimepoints;
+    };
+
 
     struct reactantQueryResults{
         int numOfResults;
@@ -62,11 +70,25 @@ extern "C" {
     int initSystemNauty_c(const char**, const int*, int);
 
 
+
+    
+    //TODO: These functions are specific to the nfsim-mcell implementation. In a future implementation
+    // it might be better to implement them directly into the mcell framework.
+
     //update a seeding table that keeps track of molecules we will use to initialize the system
     int constructNauty_c(const char*, const int);
 
-    //init a system from the incremental list
+    //init a system from the incremental list mantained through constructNauty
     int initFromConstruct_c();
+
+    //store the current observable set in a list
+    int logNFSimObservables_c(double time);
+
+    //stream observableSet to file
+    int outputNFSimObservables_c();
+    int outputNFSimObservablesF_c(const char*);
+
+    //END NFSim-mcell specific functions
 
     //returns those molecules in the system that are participants in a reaction with <param> reactants that can be fired
     reactantQueryResults queryByNumReactant_c(const int);
@@ -87,6 +109,9 @@ extern "C" {
     int stepSimulation_c();
     //performs exactly one simulation step by firying reaction rxn
     int stepSimulationRxn_c(const char* rxn);
+
+    //frees up the reactantQueryResults object
+    int delete_reactantQueryResults(reactantQueryResults);
 
 #ifdef __cplusplus
 }

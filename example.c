@@ -25,7 +25,8 @@ int main() {
     for (int i=0; i < query.numOfResults; i++){
         printf("%s\n",query.results[i]);
     }
- 
+    logObservables_c(0);
+
     printf("<<<<\n");
     reactantQueryResults query2 = queryByNumReactant_c(1);
  
@@ -49,6 +50,9 @@ int main() {
     printf("after call\n");
 
     queryObservables_c();
+
+    logNFSimObservables_c(1);
+    outputNFSimObservables_c();
     /*stepSimulationRxn_c(query2.associatedReactions[0].reactionNames[0]);
     query = querySystemStatus_c("complex");
     for (int i=0; i < query.numOfResults; i++){

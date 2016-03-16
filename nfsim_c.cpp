@@ -2,18 +2,25 @@
 
 #include "nfsim_c.h"
 #include <NFapi.hh>
+#include <iostream>
+#include <fstream>
 
 map<string,int> preInitMap;
+vector<map<string, double>> observableLog;
+vector<double> observableTimes;
+
+map<map<string,int>, map<string, double>> preInitMapCollection;
+
+static std::string inputFile;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Inside this "extern C" block, I can define C functions that are able to call C++ code
-
-
 int setupNFSim_c(const char* filename, int verbose) {
     //nfapi returns bool
+    inputFile = std::string(filename);
     if(NFapi::setupNFSim(filename, verbose))
         return 0;
     return -1;
@@ -61,6 +68,59 @@ int constructNauty_c(const char* nautyString, const int seedNumber){
     return 0;
 }
 
+ 
+int logNFSimObservables_c(double timePoint){
+
+    //memoization
+    map<string, double> currentObservables;
+
+    if(preInitMapCollection.find(preInitMap) != preInitMapCollection.end()){
+        currentObservables = preInitMapCollection[preInitMap];
+    }
+    else{
+        //init system and query observables
+        resetSystem_c();
+        initFromConstruct_c();
+        //query system
+        NFapi::queryObservables(currentObservables);
+        //store for later queries
+        preInitMapCollection[preInitMap] = currentObservables;
+    }
+    observableLog.push_back(currentObservables);
+    observableTimes.push_back(timePoint);
+
+}
+
+
+
+int outputNFSimObservables_c(){
+    outputNFSimObservablesF_c((inputFile + ".gdat").c_str());
+}
+
+
+int outputNFSimObservablesF_c(const char* outputfilename){
+    ofstream gdatFile;
+
+    gdatFile.open(outputfilename);
+    vector<string> keys;
+    gdatFile << "time, ";
+    for(auto it: observableLog[0]){
+        gdatFile << it.first << ", ";
+        keys.push_back(it.first);
+    }
+    gdatFile <<"\n";
+    for(int i=0; i < observableLog.size(); i++){
+        auto line = observableLog[i];
+        gdatFile << observableTimes[i] << ", ";
+        for(auto key: keys){
+            gdatFile << line[key] << ", ";
+        }
+        gdatFile <<"\n";
+    }
+
+    keys.clear();
+
+}
 
 queryResults querySystemStatus_c(const char* option){
     std::vector<string> tmpResults;
@@ -115,6 +175,23 @@ reactantQueryResults map2ReactantQueryResults(const std::map<std::string, vector
         ++idx;
     }
     return finalResults;    
+}
+
+int delete_reactantQueryResults(reactantQueryResults finalResults){
+    for(int i =0; i<finalResults.numOfResults;i++){
+        free(finalResults.keys[i]);
+        for(int j=0;j<finalResults.numOfAssociatedReactions[i];j++){
+            free(finalResults.associatedReactions[i].reactionNames[j]);    
+        }
+        free(finalResults.associatedReactions[i].reactionNames);
+        free(finalResults.associatedReactions[i].rates);
+
+    }
+    free(finalResults.keys);
+    free(finalResults.numOfAssociatedReactions);
+    free(finalResults.associatedReactions);
+
+    return 0;
 }
 
 
@@ -191,7 +268,7 @@ queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
 reactantQueryResults initAndQueryByNumReactant_c(const queryOptions options_c){
     NFapi::numReactantQueryIndex options;
     for(int i=0;i < options_c.numOfInitElements; i++)
-    {
+        {
         options.initMap[options_c.initKeys[i]] = options_c.initValues[i];
     }
 
