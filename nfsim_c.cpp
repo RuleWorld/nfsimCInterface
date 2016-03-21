@@ -94,6 +94,12 @@ int logNFSimObservables_c(double timePoint){
 
 
 int outputNFSimObservables_c(){
+    const size_t last_slash_idx = inputFile.find_last_of("\\/");
+    if (std::string::npos != last_slash_idx)
+    {
+        inputFile.erase(0, last_slash_idx + 1);
+    }
+    // Remove extension if present.
     outputNFSimObservablesF_c((inputFile + ".gdat").c_str());
 }
 
@@ -233,7 +239,6 @@ observableResults queryObservables_c(){
 queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
     std::vector<string> tmpResults;
     NFapi::numReactantQueryIndex options;
-
     for(int i=0;i < options_c.numOfInitElements; i++)
     {
         options.initMap[options_c.initKeys[i]] = options_c.initValues[i];
@@ -244,9 +249,7 @@ queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
         options.options[options_c.optionKeys[i]] = std::string(options_c.optionValues[i]);
 
     }
-
     NFapi::initAndQuerySystemStatus(options, tmpResults);
-
     queryResults query;
     query.results = (char**) malloc(tmpResults.size() * sizeof(char *));
     query.numOfResults = tmpResults.size();
