@@ -5,12 +5,13 @@
 
 int main() {
     //const char *species[1] = {"c:a~NO_STATE!4!2,c:l~NO_STATE!3,c:l~NO_STATE!3!0,m:Lig!2!1,m:Rec!0"};
-    char* iSpecies = "c:a~NO_STATE!4!2,c:l~NO_STATE!3,c:l~NO_STATE!3!0,m:Lig!2!1,m:Rec!0";
-
+    //char* iSpecies = "c:a~NO_STATE!4!2,c:l~NO_STATE!3,c:l~NO_STATE!3!0,m:Lig!2!1,m:Rec!0";
+    char* iSpecies = "c:l~NO_STATE!3!1,c:r~NO_STATE!2!0,m:L@EC!1,m:R@PM!0,";
     const char** species = malloc(1 * sizeof(char*));
     species[0] = iSpecies;
     static const int seeds[1]= {1};
-    int result = setupNFSim_c("example.mdlr.xml_total.xml", 0);
+    //int result = setupNFSim_c("example.mdlr.xml_total.xml", 0);
+    int result = setupNFSim_c("cbngl_test_empty.xml", 0);
     if(result != 0){
         return -1;
     }
@@ -25,7 +26,7 @@ int main() {
     for (int i=0; i < query.numOfResults; i++){
         printf("%s\n",query.results[i]);
     }
-    logObservables_c(0);
+    //logObservables_c(0);
 
     printf("<<<<\n");
     reactantQueryResults query2 = queryByNumReactant_c(1);
@@ -49,6 +50,8 @@ int main() {
     reactantQueryResults query3 = initAndQueryByNumReactant_c(options);
     printf("after call\n");
 
+    compartmentStruct tmp = getCompartmentInformation_c("PM");
+    printf("%s %s\n",tmp.name,tmp.outside);
     queryObservables_c();
 
     logNFSimObservables_c(1);

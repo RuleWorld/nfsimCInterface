@@ -129,16 +129,17 @@ int outputNFSimObservablesF_c(const char* outputfilename){
 }
 
 queryResults querySystemStatus_c(const char* option){
-    std::vector<string> tmpResults;
+    std::vector<NFapi::queryResults> tmpResults;
     NFapi::querySystemStatus(std::string(option), tmpResults);
 
     queryResults query;
-    query.results = (char**) malloc(tmpResults.size() * sizeof(char *));
+    query.results = (struct resultEntry*) malloc(tmpResults.size() * sizeof(struct resultEntry));
+    //query.results = (char**) malloc(tmpResults.size() * sizeof(char *));
     query.numOfResults = tmpResults.size();
     int index = 0;
-    for(string it: tmpResults){
-        query.results[index] = (char *)malloc(it.size()+1);
-        memcpy(query.results[index], it.c_str(), it.size() + 1);
+    for(auto it: tmpResults){
+        query.results[index].label = (char *)malloc(it.label.size()+1);
+        memcpy(query.results[index].label, it.label.c_str(), it.label.size() + 1);
         index++;
     }
 
@@ -200,6 +201,11 @@ int delete_reactantQueryResults(reactantQueryResults finalResults){
     return 0;
 }
 
+int delete_compartmentStructs(compartmentStruct compartment){
+    free(compartment.name);
+    free(compartment.outside);
+}
+
 
 reactantQueryResults queryByNumReactant_c(const int numReactants){
     std::map<std::string, vector<map<string,string>>> queryResults;
@@ -237,7 +243,7 @@ observableResults queryObservables_c(){
 
 
 queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
-    std::vector<string> tmpResults;
+    std::vector<NFapi::queryResults> tmpResults;
     NFapi::numReactantQueryIndex options;
     for(int i=0;i < options_c.numOfInitElements; i++)
     {
@@ -251,12 +257,16 @@ queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
     }
     NFapi::initAndQuerySystemStatus(options, tmpResults);
     queryResults query;
-    query.results = (char**) malloc(tmpResults.size() * sizeof(char *));
+    query.results = (struct resultEntry*) malloc(tmpResults.size() * sizeof(struct resultEntry));
     query.numOfResults = tmpResults.size();
     int index = 0;
-    for(string it: tmpResults){
-        query.results[index] = (char *)malloc(it.size()+1);
-        memcpy(query.results[index], it.c_str(), it.size() + 1);
+    for(auto it: tmpResults){
+        query.results[index].label = (char *)malloc(it.label.size()+1);
+        memcpy(query.results[index].label, it.label.c_str(), it.label.size() + 1);
+        
+        query.results[index].compartment = (char *)malloc(it.compartment.size()+1);
+        memcpy(query.results[index].compartment, it.compartment.c_str(), it.compartment.size() + 1);
+
         index++;
     }
 
@@ -311,6 +321,24 @@ int stepSimulationRxn_c(const char* rxn){
     }
     return 1;
 }
+
+compartmentStruct getCompartmentInformation_c(const char* name){
+    Compartment* tmp = NFapi::getCompartmentInformation(name);
+    compartmentStruct result;
+
+    result.name = (char *)malloc(tmp->getName().size()+1);
+    memcpy(result.name, tmp->getName().c_str(), tmp->getName().size() + 1);
+
+    result.spatialDimensions = tmp->getSpatialDimensions();
+    result.size = tmp->getSize();
+
+    result.outside = (char *)malloc(tmp->getOutside().size() + 1);
+    memcpy(result.outside, tmp->getOutside().c_str(), tmp->getOutside().size() + 1);
+
+    return result;
+}
+
+
 
 #ifdef __cplusplus
 }
