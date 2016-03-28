@@ -129,7 +129,7 @@ int outputNFSimObservablesF_c(const char* outputfilename){
 }
 
 queryResults querySystemStatus_c(const char* option){
-    std::vector<NFapi::queryResults> tmpResults;
+    std::vector<NFapi::queryResults*> tmpResults;
     NFapi::querySystemStatus(std::string(option), tmpResults);
 
     queryResults query;
@@ -138,8 +138,8 @@ queryResults querySystemStatus_c(const char* option){
     query.numOfResults = tmpResults.size();
     int index = 0;
     for(auto it: tmpResults){
-        query.results[index].label = (char *)malloc(it.label.size()+1);
-        memcpy(query.results[index].label, it.label.c_str(), it.label.size() + 1);
+        query.results[index].label = (char *)malloc(it->label.size()+1);
+        memcpy(query.results[index].label, it->label.c_str(), it->label.size() + 1);
         index++;
     }
 
@@ -243,7 +243,7 @@ observableResults queryObservables_c(){
 
 
 queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
-    std::vector<NFapi::queryResults> tmpResults;
+    std::vector<NFapi::queryResults*> tmpResults;
     NFapi::numReactantQueryIndex options;
     for(int i=0;i < options_c.numOfInitElements; i++)
     {
@@ -261,11 +261,14 @@ queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
     query.numOfResults = tmpResults.size();
     int index = 0;
     for(auto it: tmpResults){
-        query.results[index].label = (char *)malloc(it.label.size()+1);
-        memcpy(query.results[index].label, it.label.c_str(), it.label.size() + 1);
+        query.results[index].label = (char *)malloc(it->label.size()+1);
+        memcpy(query.results[index].label, it->label.c_str(), it->label.size() + 1);
         
-        query.results[index].compartment = (char *)malloc(it.compartment.size()+1);
-        memcpy(query.results[index].compartment, it.compartment.c_str(), it.compartment.size() + 1);
+        query.results[index].compartment = (char *)malloc(it->compartment.size()+1);
+        memcpy(query.results[index].compartment, it->compartment.c_str(), it->compartment.size() + 1);
+
+        query.results[index].originalCompartment = (char *)malloc(it->originalCompartment.size() + 1);
+        memcpy(query.results[index].originalCompartment, it->originalCompartment.c_str(), it->originalCompartment.size() + 1);
 
         index++;
     }
