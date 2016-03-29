@@ -201,6 +201,16 @@ int delete_reactantQueryResults(reactantQueryResults finalResults){
     return 0;
 }
 
+
+const char* extractSpeciesCompartmentFromNauty_c(const char* nauty){
+    string compartment = NFapi::extractSpeciesCompartmentFromNauty(string(nauty));
+
+
+    char* result = strdup(compartment.c_str());
+    return result;
+}
+
+
 int delete_compartmentStructs(compartmentStruct compartment){
     free(compartment.name);
     free(compartment.outside);
