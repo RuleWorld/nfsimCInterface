@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 
+typedef std::map<string, string> Map;
+typedef std::vector<Map> MapVector;
 map<string,int> preInitMap;
 vector<map<string, double>> observableLog;
 vector<double> observableTimes;
@@ -13,9 +15,43 @@ map<map<string,int>, map<string, double>> preInitMapCollection;
 
 static std::string inputFile;
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+const char* map_get(void* map, const char* key) {
+        Map* m = reinterpret_cast<Map*> (map);
+        string keyStr(key);
+        return m->find(keyStr)->second.c_str();
+        //std::cout << "Key: " << k << " Value: " << m->find(k)->second <<'\n';
+}
+
+void* map_create() {
+    return reinterpret_cast<void*> (new Map);
+}
+
+void* systemStatus_createContainer(){
+    return reinterpret_cast<void*>(new MapVector);
+}
+
+void systemStatus_deleteContainer(void* container){
+    MapVector* tmp = reinterpret_cast<MapVector*> (container);
+    for(auto it: *tmp){
+        it.clear();
+    }
+    tmp->clear();
+}
+
+int systemStatus_querySize(void* container){
+    MapVector* tmp = reinterpret_cast<MapVector*> (container);
+    return tmp->size();
+}
+
+void* systemStatus_queryGet(void* container, int position){
+    MapVector* tmp = reinterpret_cast<MapVector*> (container);
+    return reinterpret_cast<void*> (&(tmp->at(position)));
+}
 
 // Inside this "extern C" block, I can define C functions that are able to call C++ code
 int setupNFSim_c(const char* filename, int verbose) {
@@ -128,24 +164,26 @@ int outputNFSimObservablesF_c(const char* outputfilename){
 
 }
 
-queryResults querySystemStatus_c(const char* option){
-    std::vector<NFapi::queryResults*> tmpResults;
-    NFapi::querySystemStatus(std::string(option), tmpResults);
+void querySystemStatus_c(const char* option, void* results){
+    
+    MapVector* tmpResults = reinterpret_cast<MapVector*>(results);
+    //std::vector<map<string, string>> tmpResults;
+    NFapi::querySystemStatus(std::string(option), *tmpResults);
 
-    queryResults query;
-    query.results = (struct resultEntry*) malloc(tmpResults.size() * sizeof(struct resultEntry));
+    /*queryResults query;
+    //query.results = map_create();
+    query.results = (void**) malloc(tmpResults.size() * sizeof(Map*));
     //query.results = (char**) malloc(tmpResults.size() * sizeof(char *));
     query.numOfResults = tmpResults.size();
     int index = 0;
     for(auto it: tmpResults){
-        query.results[index].label = (char *)malloc(it->label.size()+1);
-        memcpy(query.results[index].label, it->label.c_str(), it->label.size() + 1);
-        index++;
-    }
+        query.results[index] = reinterpret_cast<void*>(&it);
+        //memcpy(query.results[index].label, it["label"].c_str(), it["label"].size() + 1);
+        //index++;
+    }*/
 
-    tmpResults.clear();
 
-    return query;
+    //return query;
 }
 
 
@@ -252,8 +290,7 @@ observableResults queryObservables_c(){
 }
 
 
-queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
-    std::vector<NFapi::queryResults*> tmpResults;
+void initAndQuerySystemStatus_c(const queryOptions options_c, void* results){
     NFapi::numReactantQueryIndex options;
     for(int i=0;i < options_c.numOfInitElements; i++)
     {
@@ -265,28 +302,13 @@ queryResults initAndQuerySystemStatus_c(const queryOptions options_c){
         options.options[options_c.optionKeys[i]] = std::string(options_c.optionValues[i]);
 
     }
-    NFapi::initAndQuerySystemStatus(options, tmpResults);
-    queryResults query;
-    query.results = (struct resultEntry*) malloc(tmpResults.size() * sizeof(struct resultEntry));
-    query.numOfResults = tmpResults.size();
-    int index = 0;
-    for(auto it: tmpResults){
-        query.results[index].label = (char *)malloc(it->label.size()+1);
-        memcpy(query.results[index].label, it->label.c_str(), it->label.size() + 1);
-        
-        query.results[index].compartment = (char *)malloc(it->compartment.size()+1);
-        memcpy(query.results[index].compartment, it->compartment.c_str(), it->compartment.size() + 1);
 
-        query.results[index].originalCompartment = (char *)malloc(it->originalCompartment.size() + 1);
-        memcpy(query.results[index].originalCompartment, it->originalCompartment.c_str(), it->originalCompartment.size() + 1);
+    MapVector* tmpResults = reinterpret_cast<MapVector*>(results);
+    NFapi::initAndQuerySystemStatus(options, *tmpResults);
 
-        index++;
-    }
 
-    tmpResults.clear();
     options.initMap.clear();
     options.options.clear();
-    return query;
 
 }
 

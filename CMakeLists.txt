@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8.4)
+set(CMAKE_VERBOSE_MAKEFILE on)
 
 set(SUB_DIRS
     include/
@@ -30,6 +31,8 @@ set(SUB_DIRS
 
 project(nfsim_c)
 
+add_definitions("-fPIC")
+
 set(SOURCE_FILES
     nfsim_c.cpp
     nfsim_c.h)
@@ -39,9 +42,20 @@ set(SOURCE_FILES
 add_definitions("-Wno-deprecated-declarations")
 add_definitions(-std=c++11)
 
+
+add_library(objlib OBJECT ${SOURCE_FILES})
+# shared libraries need PIC
+set_property(TARGET ${objlib} PROPERTY POSITION_INDEPENDENT_CODE 1)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${SUB_DIRS})
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+
+add_library(${PROJECT_NAME} SHARED $<TARGET_OBJECTS:objlib>)
 target_link_libraries(${PROJECT_NAME} NFsim)
 
+#add_library(${PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:objlib>)
+
+
+#add_executable(example example.c)
+#target_link_libraries(example ${PROJECT_NAME} NFsim stdc++)

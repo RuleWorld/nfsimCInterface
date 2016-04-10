@@ -22,9 +22,12 @@ int main() {
     //initSystemNauty_c(species, seeds, 1);
     constructNauty_c(iSpecies, 1);
     initFromConstruct_c();
-    queryResults query = querySystemStatus_c("complex");
-    for (int i=0; i < query.numOfResults; i++){
-        printf("%s\n",query.results[i]);
+    void* resultVector = systemStatus_createContainer();
+    querySystemStatus_c("complex", resultVector);
+    for (int i=0; i < systemStatus_querySize(resultVector); i++){
+        //printf("\n----%s\n",query.results[i].label);
+        void* individualResult = systemStatus_queryGet(resultVector, i);
+        printf("\n----%s\n",map_get(individualResult,"label"));
     }
     //logObservables_c(0);
 
@@ -46,9 +49,7 @@ int main() {
     options.optionValues = optionValues;
     options.numOfOptions =1;
     //reset, init, query the nfsim system
-    printf("before call\n");
-    reactantQueryResults query3 = initAndQueryByNumReactant_c(options);
-    printf("after call\n");
+    //reactantQueryResults query3 = initAndQueryByNumReactant_c(options);
 
     compartmentStruct tmp = getCompartmentInformation_c("PM");
     printf("%s %s\n",tmp.name,tmp.outside);
@@ -56,6 +57,18 @@ int main() {
 
     logNFSimObservables_c(1);
     outputNFSimObservables_c();
+
+    void* resultVector2 = systemStatus_createContainer();
+
+    initAndQuerySystemStatus_c(options, resultVector2);
+
+
+    for (int i=0; i < systemStatus_querySize(resultVector2); i++){
+        //printf("\n----%s\n",query.results[i].label);
+        void* individualResult = systemStatus_queryGet(resultVector, i);
+        printf("\n+++++%s\n",map_get(individualResult,"label"));
+    }
+
     /*stepSimulationRxn_c(query2.associatedReactions[0].reactionNames[0]);
     query = querySystemStatus_c("complex");
     for (int i=0; i < query.numOfResults; i++){
