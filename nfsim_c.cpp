@@ -6,7 +6,7 @@
 #include <fstream>
 
 typedef std::map<string, string> Map;
-typedef std::vector<Map> MapVector;
+typedef std::vector<Map*> MapVector;
 map<string,int> preInitMap;
 vector<map<string, double>> observableLog;
 vector<double> observableTimes;
@@ -38,7 +38,7 @@ void* systemStatus_createContainer(){
 void systemStatus_deleteContainer(void* container){
     MapVector* tmp = reinterpret_cast<MapVector*> (container);
     for(auto it: *tmp){
-        it.clear();
+        it->clear();
     }
     tmp->clear();
 }
@@ -50,7 +50,7 @@ int systemStatus_querySize(void* container){
 
 void* systemStatus_queryGet(void* container, int position){
     MapVector* tmp = reinterpret_cast<MapVector*> (container);
-    return reinterpret_cast<void*> (&(tmp->at(position)));
+    return reinterpret_cast<void*> (tmp->at(position));
 }
 
 // Inside this "extern C" block, I can define C functions that are able to call C++ code
