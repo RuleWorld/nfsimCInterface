@@ -23,6 +23,8 @@ extern "C" {
 const char* map_get(void* map, const char* key) {
         Map* m = reinterpret_cast<Map*> (map);
         string keyStr(key);
+        if(m->find(keyStr) == m->end())
+            return NULL;
         return m->find(keyStr)->second.c_str();
         //std::cout << "Key: " << k << " Value: " << m->find(k)->second <<'\n';
 }
