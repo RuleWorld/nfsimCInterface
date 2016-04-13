@@ -43,6 +43,8 @@ void systemStatus_deleteContainer(void* container){
         it->clear();
     }
     tmp->clear();
+
+    delete tmp;
 }
 
 int systemStatus_querySize(void* container){
@@ -360,7 +362,8 @@ int stepSimulationRxn_c(const char* rxn){
 }
 
 compartmentStruct getCompartmentInformation_c(const char* name){
-    Compartment* tmp = NFapi::getCompartmentInformation(name);
+    string nameStr(name);
+    shared_ptr<Compartment> tmp = NFapi::getCompartmentInformation(nameStr);
     compartmentStruct result;
 
     result.name = (char *)malloc(tmp->getName().size()+1);
