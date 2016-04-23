@@ -1,12 +1,16 @@
 #include <cstdlib>
 
 #include "nfsim_c.h"
+#include "nfsim_c_structs.h"
 #include <NFapi.hh>
 #include <iostream>
 #include <fstream>
 
-typedef std::map<string, string> Map;
+typedef std::map<std::string, std::string> Map;
 typedef std::vector<Map*> MapVector;
+typedef std::map<std::string, MapVector*> MapMapVector;
+
+
 map<string,int> preInitMap;
 vector<map<string, double>> observableLog;
 vector<double> observableTimes;
@@ -20,42 +24,6 @@ static std::string inputFile;
 extern "C" {
 #endif
 
-const char* map_get(void* map, const char* key) {
-        Map* m = reinterpret_cast<Map*> (map);
-        string keyStr(key);
-        if(m->find(keyStr) == m->end())
-            return NULL;
-        return m->find(keyStr)->second.c_str();
-        //std::cout << "Key: " << k << " Value: " << m->find(k)->second <<'\n';
-}
-
-void* map_create() {
-    return reinterpret_cast<void*> (new Map);
-}
-
-void* systemStatus_createContainer(){
-    return reinterpret_cast<void*>(new MapVector);
-}
-
-void systemStatus_deleteContainer(void* container){
-    MapVector* tmp = reinterpret_cast<MapVector*> (container);
-    for(auto it: *tmp){
-        it->clear();
-    }
-    tmp->clear();
-
-    delete tmp;
-}
-
-int systemStatus_querySize(void* container){
-    MapVector* tmp = reinterpret_cast<MapVector*> (container);
-    return tmp->size();
-}
-
-void* systemStatus_queryGet(void* container, int position){
-    MapVector* tmp = reinterpret_cast<MapVector*> (container);
-    return reinterpret_cast<void*> (tmp->at(position));
-}
 
 // Inside this "extern C" block, I can define C functions that are able to call C++ code
 int setupNFSim_c(const char* filename, int verbose) {
@@ -192,7 +160,7 @@ void querySystemStatus_c(const char* option, void* results){
 
 
 
-reactantQueryResults map2ReactantQueryResults(const std::map<std::string, vector<map<string,string>>> &queryResults){
+reactantQueryResults map2ReactantQueryResults(const std::map<std::string, vector<map<string,string>*>*> &queryResults){
 
     reactantQueryResults finalResults;
     finalResults.numOfResults = queryResults.size();
@@ -205,17 +173,17 @@ reactantQueryResults map2ReactantQueryResults(const std::map<std::string, vector
     for(auto it: queryResults){
         finalResults.keys[idx] = (char *) malloc(it.first.size() + 1);
         memcpy(finalResults.keys[idx], it.first.c_str(), it.first.size() + 1);
-        finalResults.numOfAssociatedReactions[idx] = it.second.size();
-        finalResults.associatedReactions[idx].reactionNames = (char**) malloc(it.second.size() * sizeof(char*));
-        finalResults.associatedReactions[idx].rates = (double*) malloc(it.second.size() * sizeof(double));
+        finalResults.numOfAssociatedReactions[idx] = it.second->size();
+        finalResults.associatedReactions[idx].reactionNames = (char**) malloc(it.second->size() * sizeof(char*));
+        finalResults.associatedReactions[idx].rates = (double*) malloc(it.second->size() * sizeof(double));
         idx2 = 0;
 
 
-        for(auto rxn: it.second){
-            finalResults.associatedReactions[idx].reactionNames[idx2] = (char*) malloc(rxn["name"].size() + 1);
-            memcpy(finalResults.associatedReactions[idx].reactionNames[idx2], rxn["name"].c_str(), rxn["name"].size() + 1);
+        for(auto rxn: *(it.second)){
+            finalResults.associatedReactions[idx].reactionNames[idx2] = (char*) malloc(rxn->find("name")->second.size() + 1);
+            memcpy(finalResults.associatedReactions[idx].reactionNames[idx2], rxn->find("name")->second.c_str(), rxn->find("name")->second.size() + 1);
 
-            finalResults.associatedReactions[idx].rates[idx2] = std::stod(rxn["rate"]);
+            finalResults.associatedReactions[idx].rates[idx2] = std::stod(rxn->find("rate")->second);
 
             //finalResults.associatedReactions[idx].numReactants[idx2] = std::stoul(rxn["numReactants"],0,10);
             //finalResults.associatedReactions[idx].numProducts[idx2] = std::stoul(rxn["numProducts"],0,10);
@@ -259,19 +227,18 @@ int delete_compartmentStructs(compartmentStruct compartment){
 }
 
 
-reactantQueryResults queryByNumReactant_c(const int numReactants){
-    std::map<std::string, vector<map<string,string>>> queryResults;
-    NFapi::queryByNumReactant(queryResults, numReactants);
+void queryByNumReactant_c(const int numReactants, void* results){
+    //std::map<std::string, vector<map<string,string>*>*> queryResults;
+    MapMapVector* queryResults = reinterpret_cast<MapMapVector*>(results);
+    NFapi::queryByNumReactant(*queryResults, numReactants);
 
-    reactantQueryResults finalResults = map2ReactantQueryResults(queryResults);
+    //reactantQueryResults finalResults = map2ReactantQueryResults(queryResults);
 
     //cleanup
-    for(auto it: queryResults){
-        it.second.clear();
-    }
-    queryResults.clear();
-
-    return finalResults;
+    //for(auto it: queryResults){
+    //    it.second->clear();
+    //}
+    //queryResults.clear();
 }
 
 observableResults queryObservables_c(){
@@ -317,7 +284,7 @@ void initAndQuerySystemStatus_c(const queryOptions options_c, void* results){
 }
 
 
-reactantQueryResults initAndQueryByNumReactant_c(const queryOptions options_c){
+void initAndQueryByNumReactant_c(const queryOptions options_c, void* results){
     NFapi::numReactantQueryIndex options;
     for(int i=0;i < options_c.numOfInitElements; i++)
         {
@@ -328,22 +295,21 @@ reactantQueryResults initAndQueryByNumReactant_c(const queryOptions options_c){
     {
         options.options[options_c.optionKeys[i]] = options_c.optionValues[i];
     }
-
-    std::map<std::string, vector<map<string,string>>> queryResults;
-    NFapi::initAndQueryByNumReactant(options, queryResults);
+    //std::map<std::string, vector<map<string,string>*>*> queryResults;
+    MapMapVector* queryResults = reinterpret_cast<MapMapVector*>(results);
+    NFapi::initAndQueryByNumReactant(options, *queryResults);
 
     //translate results to a C friendly form
-    reactantQueryResults finalResults = map2ReactantQueryResults(queryResults);
+    //reactantQueryResults finalResults = map2ReactantQueryResults(queryResults);
     //cleanup
-    for(auto it: queryResults){
-        it.second.clear();
-    }
+    //for(auto it: queryResults){
+    //    it.second->clear();
+    //}
 
-    queryResults.clear();
+    //queryResults.clear();
     options.initMap.clear();
     options.options.clear();
 
-    return finalResults;
 }
 
 
