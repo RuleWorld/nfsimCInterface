@@ -34,8 +34,11 @@ project(nfsim_c)
 add_definitions("-fPIC")
 
 set(SOURCE_FILES
-    nfsim_c.cpp
-    nfsim_c.h)
+    src/nfsim_c.cpp
+    src/nfsim_c.h
+    src/nfsim_c_structs.h
+    src/nfsim_c_structs.cpp
+)
 
 
 

@@ -8,7 +8,7 @@
 
 typedef std::map<std::string, std::string> Map;
 typedef std::vector<Map*> MapVector;
-typedef std::map<std::string, MapVector*> MapMapVector;
+typedef std::map<std::string, MapVector*> MapVectorMap;
 
 
 map<string,int> preInitMap;
@@ -229,7 +229,7 @@ int delete_compartmentStructs(compartmentStruct compartment){
 
 void queryByNumReactant_c(const int numReactants, void* results){
     //std::map<std::string, vector<map<string,string>*>*> queryResults;
-    MapMapVector* queryResults = reinterpret_cast<MapMapVector*>(results);
+    MapVectorMap* queryResults = reinterpret_cast<MapVectorMap*>(results);
     NFapi::queryByNumReactant(*queryResults, numReactants);
 
     //reactantQueryResults finalResults = map2ReactantQueryResults(queryResults);
@@ -296,7 +296,7 @@ void initAndQueryByNumReactant_c(const queryOptions options_c, void* results){
         options.options[options_c.optionKeys[i]] = options_c.optionValues[i];
     }
     //std::map<std::string, vector<map<string,string>*>*> queryResults;
-    MapMapVector* queryResults = reinterpret_cast<MapMapVector*>(results);
+    MapVectorMap* queryResults = reinterpret_cast<MapVectorMap*>(results);
     NFapi::initAndQueryByNumReactant(options, *queryResults);
 
     //translate results to a C friendly form

@@ -3,11 +3,11 @@
 #include <cstdlib>
 #include <map>
 #include <vector>
-
+#include <string.h>
 
 typedef std::map<std::string, std::string> Map;
 typedef std::vector<Map*> MapVector;
-typedef std::map<std::string, MapVector*> MapMapVector;
+typedef std::map<std::string, MapVector*> MapVectorMap;
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,12 +31,12 @@ void* mapvector_create(){
     return reinterpret_cast<void*>(new MapVector);
 }
 
-void* mapmapvector_create(){
-    return reinterpret_cast<void*>(new MapMapVector);
+void* mapvectormap_create(){
+    return reinterpret_cast<void*>(new MapVectorMap);
 }
 
-void mapmapvector_delete(void* container){
-    MapMapVector* tmp = reinterpret_cast<MapMapVector*> (container);
+void mapvectormap_delete(void* container){
+    MapVectorMap* tmp = reinterpret_cast<MapVectorMap*> (container);
     for(auto it: *tmp){
         for(auto it2: *(it.second)){
             it2->clear();
@@ -48,13 +48,31 @@ void mapmapvector_delete(void* container){
     delete tmp;
 }
 
-void* mapmapvector_get(void* container, char* reactant){
-    MapMapVector* tmp = reinterpret_cast<MapMapVector*>(container);
+void* mapvectormap_get(void* container, char* reactant){
+    MapVectorMap* tmp = reinterpret_cast<MapVectorMap*>(container);
     std::string reactantStr(reactant);
     if(tmp->find(reactantStr) == tmp->end())
         return NULL;
     return reinterpret_cast<void*>(tmp->find(reactantStr)->second);
 
+}
+
+char** mapvectormap_getKeys(void* container){
+    char** results;
+    MapVectorMap* tmp = reinterpret_cast<MapVectorMap*>(container);
+    std::vector<std::string> keys;
+    for(auto& it: *tmp){
+        keys.emplace_back(it.first);
+    }
+
+    results = (char**) malloc(tmp->size() * sizeof(char*));
+    int counter = 0;
+    for(auto& it: keys){
+        results[counter] = strdup(it.c_str());
+        counter++;
+    }
+
+    return results;
 }
 
 void mapvector_delete(void* container){
@@ -70,6 +88,11 @@ void mapvector_delete(void* container){
 
 int mapvector_size(void* container){
     MapVector* tmp = reinterpret_cast<MapVector*> (container);
+    return tmp->size();
+}
+
+int mapvectormap_size(void* container){
+    MapVectorMap* tmp = reinterpret_cast<MapVectorMap*>(container);
     return tmp->size();
 }
 

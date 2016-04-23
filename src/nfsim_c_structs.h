@@ -14,10 +14,14 @@ extern "C" {
     void* mapvector_create();
     int mapvector_size(void*);
     void* mapvector_get(void* vector, int position);
+
+    int mapvectormap_size(void*);
     void mapvector_delete(void*);
-    void* mapmapvector_create();
-    void mapmapvector_delete(void* container);
-    void* mapmapvector_get(void* container, char* reactant);
+    void* mapvectormap_create();
+    void mapvectormap_delete(void* container);
+    void* mapvectormap_get(void* container, char* reactant);
+    char** mapvectormap_getKeys(void* container);
+
 
 #ifdef __cplusplus
 }

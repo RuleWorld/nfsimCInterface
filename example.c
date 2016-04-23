@@ -55,11 +55,11 @@ int main() {
     options.numOfOptions =2;
     //reset, init, query the nfsim system
     printf("hello\n");
-    void* reactionResultVector2 = mapmapvector_create();
+    void* reactionResultVector2 = mapvectormap_create();
     initAndQueryByNumReactant_c(options, reactionResultVector2);
 
     //printf("hello %d\n",query3.numOfResults);
-    void* reactionsByReactant = mapmapvector_get(reactionResultVector2, "c:SH2~NO_STATE!5,c:U~NO_STATE!5!3,c:a~NO_STATE!6,c:b~Y!6!1,c:g~Y!6,m:Lyn@PM!0!1,m:Rec@PM!3!4!2,");
+    void* reactionsByReactant = mapvectormap_get(reactionResultVector2, "c:SH2~NO_STATE!5,c:U~NO_STATE!5!3,c:a~NO_STATE!6,c:b~Y!6!1,c:g~Y!6,m:Lyn@PM!0!1,m:Rec@PM!3!4!2,");
 
     int vectorsize = mapvector_size(reactionsByReactant);
 
@@ -69,7 +69,7 @@ int main() {
         printf("---- %s\n",map_get(localMap,"rate"));
         printf("----- %s\n",map_get(localMap,"reactionDimensionality"));
     }
-    mapmapvector_delete(reactionResultVector2);
+    mapvectormap_delete(reactionResultVector2);
 
     compartmentStruct tmp = getCompartmentInformation_c("PM");
     printf("bye %s %s\n",tmp.name,tmp.outside);
