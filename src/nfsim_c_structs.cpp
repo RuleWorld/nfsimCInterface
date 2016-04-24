@@ -40,8 +40,10 @@ void mapvectormap_delete(void* container){
     for(auto it: *tmp){
         for(auto it2: *(it.second)){
             it2->clear();
+            delete it2;
         }
         it.second->clear();
+        delete it.second;
     }
 
     tmp->clear();
@@ -72,6 +74,8 @@ char** mapvectormap_getKeys(void* container){
         counter++;
     }
 
+    keys.clear();
+
     return results;
 }
 
@@ -79,6 +83,7 @@ void mapvector_delete(void* container){
     MapVector* tmp = reinterpret_cast<MapVector*> (container);
     for(auto it: *tmp){
         it->clear();
+        delete it;
     }
     tmp->clear();
 
