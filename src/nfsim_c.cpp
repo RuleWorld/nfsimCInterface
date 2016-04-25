@@ -344,6 +344,11 @@ compartmentStruct getCompartmentInformation_c(const char* name){
     return result;
 }
 
+void freeCompartmentInformation_c(compartmentStruct* compartment){
+    free(compartment->name);
+    free(compartment->outside);
+}
+
 
 
 #ifdef __cplusplus
