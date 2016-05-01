@@ -13,6 +13,8 @@ typedef std::map<std::string, MapVector*> MapVectorMap;
 
 map<string,int> preInitMap;
 vector<map<string, double>> observableLog;
+map<string, int> currentReactions;
+
 vector<double> observableTimes;
 
 map<map<string,int>, map<string, double>> preInitMapCollection;
@@ -97,7 +99,12 @@ int logNFSimObservables_c(double timePoint){
 
     observableLog.push_back(currentObservables);
     observableTimes.push_back(timePoint);
+    //reactionLog.push_back(currentReactions);
 
+}
+
+int logNFSimReactions_c(const char* reactionName){
+    currentReactions[std::string(reactionName)] += 1;
 }
 
 
@@ -110,6 +117,8 @@ int outputNFSimObservables_c(){
     }
     // Remove extension if present.
     outputNFSimObservablesF_c((inputFile + ".gdat").c_str());
+    outputNFSimReactionsF_c((inputFile + "_reactions.gdat").c_str());
+
 }
 
 
@@ -136,6 +145,20 @@ int outputNFSimObservablesF_c(const char* outputfilename){
     keys.clear();
 
 }
+
+int outputNFSimReactionsF_c(const char* outputfilename){
+    ofstream gdatFile;
+
+    gdatFile.open(outputfilename);
+    vector<string> keys;
+    for(auto it: currentReactions){
+        gdatFile << it.first << " fired " << it.second <<"\n";
+    }
+
+    keys.clear();
+
+}
+
 
 void querySystemStatus_c(const char* option, void* results){
     
@@ -275,8 +298,14 @@ void initAndQuerySystemStatus_c(const queryOptions options_c, void* results){
     for(int i=0; i< options_c.numOfOptions; i++)
     {
         options.options[options_c.optionKeys[i]] = std::string(options_c.optionValues[i]);
+        if(std::string(options_c.optionKeys[i]) == "reaction"){
+            if(currentReactions.find(options_c.optionKeys[i]) == currentReactions.end()){
+                currentReactions[std::string(options_c.optionValues[i])] = 0;
+            }
+        }
 
     }
+
 
     MapVector* tmpResults = reinterpret_cast<MapVector*>(results);
     NFapi::initAndQuerySystemStatus(options, *tmpResults);
