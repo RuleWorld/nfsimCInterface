@@ -72,7 +72,6 @@ int constructNauty_c(const char* nautyString, const int seedNumber){
 
     preInitMap[nautyString] = preInitMap[nautyString] + seedNumber;
     preInitMap[nautyString] = max(preInitMap[nautyString], 0);
-
     return 0;
 }
 
@@ -94,6 +93,8 @@ int logNFSimObservables_c(double timePoint){
         //store for later queries
         preInitMapCollection[preInitMap] = currentObservables;
     }
+
+
     observableLog.push_back(currentObservables);
     observableTimes.push_back(timePoint);
 
@@ -265,7 +266,10 @@ void initAndQuerySystemStatus_c(const queryOptions options_c, void* results){
     NFapi::numReactantQueryIndex options;
     for(int i=0;i < options_c.numOfInitElements; i++)
     {
-        options.initMap[options_c.initKeys[i]] = options_c.initValues[i];
+        if(options.initMap.find(options_c.initKeys[i]) == options.initMap.end())
+            options.initMap[options_c.initKeys[i]] = 0;
+
+        options.initMap[options_c.initKeys[i]] += options_c.initValues[i];
     }
 
     for(int i=0; i< options_c.numOfOptions; i++)
@@ -287,8 +291,11 @@ void initAndQuerySystemStatus_c(const queryOptions options_c, void* results){
 void initAndQueryByNumReactant_c(const queryOptions options_c, void* results){
     NFapi::numReactantQueryIndex options;
     for(int i=0;i < options_c.numOfInitElements; i++)
-        {
-        options.initMap[options_c.initKeys[i]] = options_c.initValues[i];
+    {
+        if(options.initMap.find(options_c.initKeys[i]) == options.initMap.end())
+            options.initMap[options_c.initKeys[i]] = 0;
+
+        options.initMap[options_c.initKeys[i]] += options_c.initValues[i];
     }
 
     for(int i=0; i< options_c.numOfOptions; i++)

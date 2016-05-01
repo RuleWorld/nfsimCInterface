@@ -32,7 +32,7 @@ int main() {
         //printf("\n----%s\n",query.results[i].label);
         void* individualResult = mapvector_get(resultVector, i);
         printf("\n----%s\n",map_get(individualResult,"label"));
-        printf("\n----%s\n",map_get(individualResult,"diffusion_function"));
+    printf("\n----%s\n",map_get(individualResult,"diffusion_function"));
     }
     //logObservables_c(0);
 
@@ -40,7 +40,7 @@ int main() {
     //reactantQueryResults query2 = queryByNumReactant_c(1);
  
     static const char* optionKeys[2]  = {"numReactants", "onlyActive"};
-    static const char* optionValues[2] = {"2", "false"};
+    static const char* optionValues[2] = {"2", "0"};
     //initialize speciesArray with the string we are going to query
 
     //copy these settings to the options object
