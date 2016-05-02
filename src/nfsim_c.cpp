@@ -299,7 +299,7 @@ void initAndQuerySystemStatus_c(const queryOptions options_c, void* results){
     {
         options.options[options_c.optionKeys[i]] = std::string(options_c.optionValues[i]);
         if(std::string(options_c.optionKeys[i]) == "reaction"){
-            if(currentReactions.find(options_c.optionKeys[i]) == currentReactions.end()){
+            if(currentReactions.find(std::string(options_c.optionValues[i])) == currentReactions.end()){
                 currentReactions[std::string(options_c.optionValues[i])] = 0;
             }
         }
