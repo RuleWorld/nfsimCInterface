@@ -42,6 +42,10 @@ int resetSystem_c(){
     return -1;
 }
 
+int deleteNFSimSystem_c(){
+    NFapi::deleteSystem();
+}
+
 int initSystemXML_c(const char * initXML){
     if(NFapi::initSystemXML(std::string(initXML)))
         return 0;
