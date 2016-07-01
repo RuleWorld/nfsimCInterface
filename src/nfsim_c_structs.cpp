@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
-
+#include <string.h>
 
 typedef std::map<std::string, std::string> Map;
 typedef std::vector<Map*> MapVector;
