@@ -39,17 +39,30 @@ void* mapvectormap_create(){
 void mapvectormap_delete(void* container){
     MapVectorMap* tmp = reinterpret_cast<MapVectorMap*> (container);
     for(auto it: *tmp){
-        for(auto it2: *(it.second)){
+        mapvector_delete(reinterpret_cast<void*>(it.second));
+        /*for(auto it2: *(it.second)){
             it2->clear();
             delete it2;
         }
         it.second->clear();
-        delete it.second;
+        delete it.second;*/
     }
 
     tmp->clear();
     delete tmp;
 }
+
+void mapvector_delete(void* container){
+    MapVector* tmp = reinterpret_cast<MapVector*> (container);
+    for(auto it: *tmp){
+        it->clear();
+        delete it;
+    }
+    tmp->clear();
+
+    delete tmp;
+}
+
 
 void* mapvectormap_get(void* container, char* reactant){
     MapVectorMap* tmp = reinterpret_cast<MapVectorMap*>(container);
@@ -80,16 +93,6 @@ char** mapvectormap_getKeys(void* container){
     return results;
 }
 
-void mapvector_delete(void* container){
-    MapVector* tmp = reinterpret_cast<MapVector*> (container);
-    for(auto it: *tmp){
-        it->clear();
-        delete it;
-    }
-    tmp->clear();
-
-    delete tmp;
-}
 
 
 int mapvector_size(void* container){
